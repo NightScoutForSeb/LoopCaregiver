@@ -15,8 +15,8 @@ public enum GlucoseTimeLineEntry: TimelineEntry {
     case success(GlucoseTimelineValue)
     case failure(GlucoseTimeLineEntryError)
     
-    public init(looper: Looper, glucoseSample: NewGlucoseSample, lastGlucoseChange: Double?, glucoseDisplayUnits: HKUnit, overrideAndStatus: (override: NightscoutKit.TemporaryScheduleOverride, status: NightscoutKit.OverrideStatus)?, date: Date) {
-        self = .success(GlucoseTimelineValue(looper: looper, glucoseSample: glucoseSample, lastGlucoseChange: lastGlucoseChange, glucoseDisplayUnits: glucoseDisplayUnits, overrideAndStatus: overrideAndStatus, date: date))
+    public init(looper: Looper, glucoseSample: NewGlucoseSample, lastGlucoseChange: Double?, glucoseDisplayUnits: HKUnit, overrideAndStatus: (override: NightscoutKit.TemporaryScheduleOverride, status: NightscoutKit.OverrideStatus)?, recentSamples: [NewGlucoseSample], currentProfile: ProfileSet?, date: Date) {
+        self = .success(GlucoseTimelineValue(looper: looper, glucoseSample: glucoseSample, lastGlucoseChange: lastGlucoseChange, glucoseDisplayUnits: glucoseDisplayUnits, overrideAndStatus: overrideAndStatus, recentSamples: recentSamples, currentProfile: currentProfile, date: date))
     }
     
     public init(value: GlucoseTimelineValue) {
@@ -48,6 +48,8 @@ public struct GlucoseTimelineValue {
     public let lastGlucoseChange: Double?
     public let glucoseDisplayUnits: HKUnit
     public let overrideAndStatus: (override: NightscoutKit.TemporaryScheduleOverride, status: NightscoutKit.OverrideStatus)?
+    public let recentSamples: [NewGlucoseSample]
+    public let currentProfile: ProfileSet?
     public let date: Date
     
     public func nextExpectedGlucoseDate() -> Date {
@@ -56,7 +58,7 @@ public struct GlucoseTimelineValue {
     }
     
     public func valueWithDate(_ date: Date) -> GlucoseTimelineValue {
-        return .init(looper: looper, glucoseSample: glucoseSample, lastGlucoseChange: lastGlucoseChange, glucoseDisplayUnits: glucoseDisplayUnits, overrideAndStatus: overrideAndStatus, date: date)
+        return .init(looper: looper, glucoseSample: glucoseSample, lastGlucoseChange: lastGlucoseChange, glucoseDisplayUnits: glucoseDisplayUnits, overrideAndStatus: overrideAndStatus, recentSamples: recentSamples, currentProfile: currentProfile, date: date)
     }
     
     public static func previewsValue() -> GlucoseTimelineValue {
@@ -66,6 +68,8 @@ public struct GlucoseTimelineValue {
             lastGlucoseChange: 10,
             glucoseDisplayUnits: .milligramsPerDeciliter,
             overrideAndStatus: nil,
+            recentSamples: [],
+            currentProfile: nil,
             date: Date()
         )
     }
