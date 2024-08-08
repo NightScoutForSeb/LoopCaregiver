@@ -33,6 +33,7 @@ struct WatchSettingsView: View {
                         Text(item.presentableDescription).tag(item)
                     })
                 })
+                Toggle("Show Prediction", isOn: $settings.timelinePredictionEnabled)
                 Section("Phone Connectivity") {
                     LabeledContent("Session Supported", value: connectivityManager.sessionsSupported() ? "YES" : "NO")
                     LabeledContent("Session Activated", value: connectivityManager.activated ? "YES" : "NO")
@@ -68,7 +69,7 @@ struct WatchSettingsView: View {
         .onAppear {
             self.selectedLooper = accountService.selectedLooper
         }
-        .onChange(of: selectedLooper) { oldValue, newValue in
+        .onChange(of: selectedLooper) { _, newValue in
             if let newValue, accountService.selectedLooper != newValue {
                 do {
                     try accountService.updateActiveLoopUser(newValue)
@@ -77,7 +78,7 @@ struct WatchSettingsView: View {
                 }
             }
         }
-        .onChange(of: accountService.selectedLooper) { oldValue, newValue in
+        .onChange(of: accountService.selectedLooper) { _, newValue in
             if self.selectedLooper != newValue {
                 self.selectedLooper = newValue
             }

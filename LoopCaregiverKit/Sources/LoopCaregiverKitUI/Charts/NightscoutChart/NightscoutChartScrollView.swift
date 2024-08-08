@@ -16,10 +16,10 @@ public struct NightscoutChartScrollView: View {
     @ObservedObject var settings: CaregiverSettings
     @ObservedObject var remoteDataSource: RemoteDataServiceManager
     @State private var scrollRequestSubject = PassthroughSubject<ScrollType, Never>()
-    let timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    let compactMode: Bool
     public static let timelineLookbackIntervals = [1, 3, 6, 12, 24]
     @AppStorage(UserDefaults.standard.timelineVisibleLookbackHoursKey)
-    private var timelineVisibleLookbackHours = 6
+    private var timelineVisibleLookbackHours = NightscoutChartScrollView.defaultTimelineVisibleLookbackHours
 
     @State private var graphItemsInPopover: [GraphItem]?
 
@@ -32,9 +32,10 @@ public struct NightscoutChartScrollView: View {
     @Environment(\.scenePhase)
     private var scenePhase
     
-    public init(settings: CaregiverSettings, remoteDataSource: RemoteDataServiceManager) {
+    public init(settings: CaregiverSettings, remoteDataSource: RemoteDataServiceManager, compactMode: Bool) {
         self.settings = settings
         self.remoteDataSource = remoteDataSource
+        self.compactMode = compactMode
     }
 
     public var body: some View {
@@ -113,6 +114,10 @@ public struct NightscoutChartScrollView: View {
         .popover(item: $graphItemsInPopover) { graphItemsInPopover in
             graphItemsPopoverView(graphItemsInPopover: graphItemsInPopover)
         }
+        #elseif os(watchOS)
+        .sheet(item: $graphItemsInPopover) { graphItems in
+            graphItemsPopoverView(graphItemsInPopover: graphItems)
+        }
         #endif
     }
     
@@ -138,6 +143,7 @@ public struct NightscoutChartScrollView: View {
             timelinePredictionEnabled: settings.timelinePredictionEnabled,
             totalLookbackhours: 24,
             timelineVisibleLookbackHours: timelineVisibleLookbackHours,
+            compactMode: compactMode,
             showChartXAxis: true,
             showChartYAxis: true
         )
@@ -171,13 +177,15 @@ public struct NightscoutChartScrollView: View {
                     }
                 }
             }
+            #if os(iOS)
             .toolbar(content: {
-                    Button {
-                        self.graphItemsInPopover = nil
-                    } label: {
-                        Text("Done")
-                    }
+                Button {
+                    self.graphItemsInPopover = nil
+                } label: {
+                    Text("Done")
+                }
             })
+            #endif
         }
         .presentationDetents([.medium])
     }
@@ -224,15 +232,23 @@ public struct NightscoutChartScrollView: View {
             item1.displayTime < item2.displayTime
         }).filter({ distanceCalcuator(graphItem: $0, date: date, value: value) < 20 })
 
-        if sortedItems.count <= 5 {
+        if sortedItems.count <= 10 {
             return sortedItems
         } else {
-            return Array(sortedItems[0...4])
+            return Array(sortedItems[0...9])
         }
     }
 
     var zoomLevel: Double {
         return CGFloat(graphViewModel.totalGraphHours) / CGFloat(graphViewModel.visibleFrameHours)
+    }
+    
+    static var defaultTimelineVisibleLookbackHours: Int {
+#if os(watchOS)
+        return 1
+#else
+        return 6
+#endif
     }
 }
 
